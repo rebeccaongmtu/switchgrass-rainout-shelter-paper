@@ -107,30 +107,16 @@ setwd("/Directory") #Replace "/Directory" with the specific pathname for the fol
 TempData <- read_csv("TempHeatMap.csv", comment ="#") 
 
 #FORMAT DATA
-#Relabel Data
-TempData$Location[TempData$Location == "Escanaba"] <- "MI-North\nEscanaba"
-TempData$Location[TempData$Location == "Lake City"] <- "MI-Central\nLake City"
-TempData$Location[TempData$Location == "Lux Arbor"] <- "MI-South\nLux Arbor"
-TempData$Location[TempData$Location == "Rhinelander"] <- "WI-North\nRhinelander"
-TempData$Location[TempData$Location == "Hancock"] <- "WI-Central\nHancock"
-
 #Specify column formats
 TempData$Year <- as.factor(TempData$Year)
 TempData$Location <- as.factor(TempData$Location)
 TempData$Latitude <- as.factor(TempData$Latitude)
 TempData$State <- as.factor(TempData$State)
-
-#Reformat Dataframe
-TempData2<- TempData %>%
-  pivot_longer(!c(Location, Year, Latitude, State), names_to = "Date", values_to = "Temp")
-
-#Specify additional formats
-TempData2$Date <- mdy(TempData2$Date)
-TempData2$Location <- factor(TempData2$Location, c("MI-North\nEscanaba", "WI-North\nRhinelander", "MI-Central\nLake City", "WI-Central\nHancock", "MI-South\nLux Arbor"))
-
+TempData$Date <- mdy(TempData$Date)
+TempData$Location <- factor(TempData$Location, c("MI-North\nEscanaba", "WI-North\nRhinelander", "MI-Central\nLake City", "WI-Central\nHancock", "MI-South\nLux Arbor"))
 
 #TEMPERATURE HEAT PLOT (3" x 5")
-ggplot(TempData2, aes(Date,Location)) + geom_tile(aes(fill = Temp)) +
+ggplot(TempData, aes(Date,Location)) + geom_tile(aes(fill = Temp)) +
   scale_fill_viridis(option="magma") +
   theme_bw() + theme_minimal() + 
   facet_grid(~Year)+   
