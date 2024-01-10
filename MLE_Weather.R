@@ -17,7 +17,7 @@ library(viridis)
 setwd("/Directory") #Replace "/Directory" with the specific pathname for the folder where the CSV files are located - Changes the current working directory
 
 data2 <- 
-  read_csv("572-soil+moisture+volumetric+automated++1687966964.csv", 
+  read_csv("Field_Data.csv", 
            comment ="#") 
 #Reads the CSV that contains MLE data. 
 #The comment = '#' removes any cells that begin with # and removes header explanatory text
@@ -33,19 +33,12 @@ data2$site[data2$site == "Wisconsin North - Rhinelander"] <- "WI-North \n Rhinel
 data2$site[data2$site == "Wisconsin Central - Hancock"] <- "WI-Central \n Hancock"
 data2$depth[data2$depth == "10"] <- "Shallow"
 data2$depth[data2$depth == "25"] <- "Deep"
-data2$subplot[data2$subplot == "ambient"] <- "Ambient"
-data2$subplot[data2$subplot == "rainout"] <- "Rainout"
-
-data2<- data2 %>%
-  rename("Feedstock" = "treatment") %>%
-  rename("Treatment" = "subplot")
+data2$treatment[data2$treatment == "ambient"] <- "Ambient"
+data2$treatment[data2$treatment == "rainout"] <- "Rainout"
 
 #Specify format of columns
 data2 $ site <-as.factor( data2 $ site ) #change variable class to factor
-data2 $ Feedstock <-as.factor( data2 $ Feedstock ) #change variable class to factor
-data2 $ Treatment <-as.factor( data2 $ Treatment ) #change variable class to factor
-data2 $ replicate <-as.factor( data2 $ replicate ) #change variable class to factor
-data2 $ sheltered <-as.factor( data2 $ sheltered ) #change variable class to factor
+data2 $ treatment <-as.factor( data2 $ treatment ) #change variable class to factor
 data2 $ depth = factor(data2$depth, c("Shallow", "Deep"))
 
 #Specify ordering of site factor
@@ -59,16 +52,13 @@ mycolors = c("#444e86", "#ff6e54")
 #SOIL MOISTURE DATA
 #Processing soil moisture data (volumetric water content) to only include data for the five field sites, the ambient and rainout treatments, and the growing season (April-October from 2018-2021), averaged across field plot - data is converted to an average daily value
 data_vwc_avg<- data2 %>%
-  filter(Treatment != 'reserved') %>%
-  filter(site != 'Michigan BCSE') %>%
-  filter(year(datetime) < 2022) %>%
   mutate(day = day(datetime), month = month(datetime), year = year(datetime), fakedate = make_date(2018, month, day)) %>%
   filter(month > 4 & month < 11) %>%
-  group_by(site, depth, Treatment, year, fakedate) %>%
+  group_by(site, depth, treatment, year, fakedate) %>%
   summarize(avg_vwc = mean(vwc, na.rm =T))
 
 #Plot of Soil Moisture Data, Faceted by Year, Location and Depth (size = 11" x 3.66")
-  ggplot(data_vwc_avg, aes(fakedate, avg_vwc, color=Treatment)) +
+  ggplot(data_vwc_avg, aes(fakedate, avg_vwc, color=treatment)) +
   geom_point(size = 0.3) + scale_color_manual(values = mycolors) +
   theme_bw() +
   facet_nested(depth~site+year) + 
@@ -80,16 +70,13 @@ data_vwc_avg<- data2 %>%
 #SOIL TEMPERATURE DATA
   #Processing soil temperature data to only include data for the five field sites, the ambient and rainout treatments, and the growing season (April-October from 2018-2021), averaged across field plot - data is converted to an average daily value
   data_temp_avg <- data2 %>%
-  filter(Treatment != 'reserved') %>%
-  filter(site != 'Michigan BCSE') %>%
-  filter(year(datetime) < 2022) %>%
   mutate(day = day(datetime), month = month(datetime), year = year(datetime), fakedate = make_date(2018, month, day)) %>%
   filter(month > 4 & month < 11) %>%
-  group_by(site, depth, Treatment, year, fakedate) %>%
+  group_by(site, depth, treatment, year, fakedate) %>%
   summarize(avg_temp = mean(temperature, na.rm =T))
 
 #Plot of Soil Moisture Data, Faceted by Year, Location and Depth (Plot = 11" x 3.66")
-  ggplot(data_temp_avg, aes(fakedate, avg_temp, color=Treatment)) +
+  ggplot(data_temp_avg, aes(fakedate, avg_temp, color=treatment)) +
   geom_point(size = 0.3) + scale_color_manual(values = mycolors) +
   geom_hline(yintercept=25, linetype = "dashed") +
   theme_bw() +
@@ -100,9 +87,9 @@ data_vwc_avg<- data2 %>%
 
 #Max & Min Temp Dot Plots  
 data_temp_avg %>% 
-    group_by(site, depth, Treatment, year) %>%
+    group_by(site, depth, treatment, year) %>%
     summarize(max_value = max(avg_temp)) %>%
-    ggplot(aes(year, max_value, color = Treatment)) +
+    ggplot(aes(year, max_value, color = treatment)) +
     geom_point()+
     scale_color_manual(values = mycolors) +
     facet_grid(depth~site)+
